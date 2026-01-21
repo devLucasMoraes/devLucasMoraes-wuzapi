@@ -2573,6 +2573,62 @@ func (s *server) RequestHistorySync() http.HandlerFunc {
 	}
 }
 
+// GetPhoneByLID retrieves the Phone number for a given Local ID (LID)
+func (s *server) GetPhoneByLID() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		txtid := r.Context().Value("userinfo").(Values).Get("Id")
+		client := clientManager.GetWhatsmeowClient(txtid)
+
+		if client == nil {
+			s.Respond(w, r, http.StatusInternalServerError, errors.New("no session"))
+			return
+		}
+
+		vars := mux.Vars(r)
+		lidParam := vars["lid"]
+
+		if lidParam == "" {
+			s.Respond(w, r, http.StatusBadRequest, errors.New("missing lid parameter"))
+			return
+		}
+
+		// Validar formato do JID
+		targetLID, err := types.ParseJID(lidParam)
+		if err != nil {
+			s.Respond(w, r, http.StatusBadRequest, errors.New("invalid lid format"))
+			return
+		}
+
+		// CORREÇÃO: Busca direta na Store de LIDs (LID -> Phone)
+		// Isso substitui o loop que causava erro
+		phoneJID, err := client.Store.LIDs.GetPNForLID(context.Background(), targetLID)
+		if err != nil {
+			// Se der erro, é porque o mapeamento não existe no banco
+			s.Respond(w, r, http.StatusNotFound, errors.New("phone number mapping not found for this LID"))
+			return
+		}
+
+		// (Opcional) Busca o nome do contato usando o telefone encontrado para enriquecer a resposta
+		contactInfo, err := client.Store.Contacts.GetContact(context.Background(), phoneJID)
+		contactName := ""
+		if err == nil {
+			contactName = contactInfo.FullName
+		}
+
+		response := map[string]interface{}{
+			"lid":   targetLID.String(),
+			"phone": phoneJID.String(),
+			"name":  contactName,
+		}
+
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			s.Respond(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		s.Respond(w, r, http.StatusOK, string(responseJson))
+	}
+}
 /*
 // Sends a Template message
 func (s *server) SendTemplate() http.HandlerFunc {
