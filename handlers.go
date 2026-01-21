@@ -6260,17 +6260,17 @@ func (s *server) GetUserLID() http.HandlerFunc {
 			return
 		}
 
-		// Get JID from URL parameter
+		// Get Phone from URL parameter
 		vars := mux.Vars(r)
-		jidParam := vars["jid"]
+		phoneParam := vars["phone"]
 
-		if jidParam == "" {
-			s.Respond(w, r, http.StatusBadRequest, errors.New("missing jid parameter"))
+		if phoneParam == "" {
+			s.Respond(w, r, http.StatusBadRequest, errors.New("missing phone parameter"))
 			return
 		}
 
 		// Parse the JID (phone number)
-		jid, ok := parseJID(jidParam)
+		jid, ok := parseJID(phoneParam)
 		if !ok {
 			s.Respond(w, r, http.StatusBadRequest, errors.New("invalid jid format"))
 			return
@@ -6281,7 +6281,7 @@ func (s *server) GetUserLID() http.HandlerFunc {
 		// Get the LID for this phone number from the store
 		lid, err := client.Store.LIDs.GetLIDForPN(context.Background(), jid)
 		if err != nil {
-			log.Error().Err(err).Str("jid", jidParam).Msg("Failed to get LID for phone number")
+			log.Error().Err(err).Str("phone", phoneParam).Msg("Failed to get LID for phone number")
 			s.Respond(w, r, http.StatusNotFound, errors.New(fmt.Sprintf("LID not found for this number: %v", err)))
 			return
 		}

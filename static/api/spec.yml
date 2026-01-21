@@ -1182,7 +1182,8 @@ paths:
             type: string
             example: "5511999999999"
       security:
-        - UserTokenAuth: []
+      security:
+        - ApiKeyAuth: []
       responses:
         200:
           description: JID and LID successfully retrieved
@@ -1210,18 +1211,18 @@ paths:
       tags:
         - User
       summary: Get Phone from LID
-      description: Recupera o número de telefone (JID) e o nome do contato associado a um Local ID (LID).
+      description: Returns the phone number (JID) and contact name associated with a Local ID (LID).
       operationId: getPhoneByLID
       parameters:
         - name: lid
           in: path
-          description: O Local ID para buscar (ex 171115892703266@lid)
+          description: The Local ID to search for (e.g. 171115892703266@lid)
           required: true
           schema:
             type: string
       responses:
-        "200":
-          description: Sucesso
+        200:
+          description: Success
           content:
             application/json:
               schema:
@@ -1236,12 +1237,12 @@ paths:
                   name:
                     type: string
                     example: "João Silva"
-        "400":
-          description: Parâmetros inválidos ou LID ausente
-        "404":
-          description: Número de telefone não encontrado para este LID
-        "500":
-          description: Erro interno do servidor ou sessão não encontrada
+        400:
+          description: Invalid parameters or LID missing
+        404:
+          description: Phone number not found for this LID
+        500:
+          description: Internal server error
       security:
         - ApiKeyAuth: []
   /chat/delete:
