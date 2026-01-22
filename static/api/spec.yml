@@ -1182,7 +1182,6 @@ paths:
             type: string
             example: "5511999999999"
       security:
-      security:
         - ApiKeyAuth: []
       responses:
         200:
